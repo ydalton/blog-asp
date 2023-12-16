@@ -93,7 +93,11 @@ public class HomeController : Controller
         try{
             entry = await _client.GetEntry<Post>(postId);
         } catch (ContentfulException err) {
-            return Error();
+            // Create a post with an entry stating that the requested url could
+            // not be found.
+            entry = new Post();
+            entry.Title = "Post not found";
+            entry.Content = "The requested post could not be found.";
         }
         // export them to the view
         ViewData["entry"] = entry;
