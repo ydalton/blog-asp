@@ -4,6 +4,7 @@ using blog.Models;
 using Contentful.Core;
 using Contentful.Core.Configuration;
 using Contentful.Core.Models;
+using Contentful.Core.Errors;
 
 namespace blog.Controllers;
 
@@ -76,11 +77,30 @@ public class HomeController : Controller
                 }
             }
         };
-        var newEntry = await _mgmtClient.CreateEntry(newPost, "post");
-        await _mgmtClient.PublishEntry(newEntry.SystemProperties.Id,
-                                       newEntry.SystemProperties.Version ?? 0);
+        try {
+            var newEntry = await _mgmtClient.CreateEntry(newPost, "post");
+            await _mgmtClient.PublishEntry(newEntry.SystemProperties.Id,
+                                        newEntry.SystemProperties.Version ?? 0);
+        } catch (ContentfulException err) {
+            Console.WriteLine("Could not create entry.");
+        }
         return View();
     }
+    public async Task<IActionResult> Post()
+    {
+        string postId = Request.Query["id"];
+        Post entry;
+        try{
+            entry = await _client.GetEntry<Post>(postId);
+        } catch (ContentfulException err) {
+            return Error();
+        }
+        // export them to the view
+        ViewData["entry"] = entry;
+        return View();
+    }
+
+
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()

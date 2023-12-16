@@ -8,10 +8,13 @@
     <h1 class="display-4">Welcome</h1>
     @{
         var entries = (ContentfulCollection<Post>) ViewData["Entries"];
-        foreach(var post in entries) {
+        foreach(var entry in entries) {
             <div style="border-style: solid">
-                <h1>@post.Title</h1>
-                <p>@post.Content</p>
+                <p>
+                    <a asp-action="Post" asp-controller="Home" asp-route-id="@entry.Sys.Id">
+                        @entry.Title
+                    </a>
+                </p>
             </div>
         }
     }

@@ -1,0 +1,7 @@
+@{
+    var post = (Post) ViewData["entry"];
+    ViewData["Title"] = post.Title;
+}
+
+<h1>@post.Title</h1>
+<p>@post.Content</p>
