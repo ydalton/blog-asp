@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using blog.Models;
 using Contentful.Core;
 using Contentful.Core.Configuration;
+using Contentful.Core.Models;
 
 namespace blog.Controllers;
 
@@ -12,17 +13,23 @@ public class HomeController : Controller
     // them in the code
     private readonly ILogger<HomeController> _logger;
     private readonly IContentfulClient _client;
+    private readonly IContentfulManagementClient _mgmtClient;
     // create a Contentful client
-    private readonly ContentfulOptions options = new ContentfulOptions {
-        DeliveryApiKey = Environment.GetEnvironmentVariable("DELIVERY_KEY"),
-        PreviewApiKey = Environment.GetEnvironmentVariable("PREVIEW_KEY"),
-        SpaceId = Environment.GetEnvironmentVariable("SPACE_ID")
-    };
+    private readonly ContentfulOptions options;
+    private readonly HttpClient _httpClient;
 
     public HomeController(ILogger<HomeController> logger)
     {
-        _client = new ContentfulClient(new HttpClient(), options)
-            ?? throw new NullReferenceException("what");
+        options = new ContentfulOptions {
+            DeliveryApiKey = Environment.GetEnvironmentVariable("DELIVERY_KEY"),
+            PreviewApiKey = Environment.GetEnvironmentVariable("PREVIEW_KEY"),
+            SpaceId = Environment.GetEnvironmentVariable("SPACE_ID"),
+            ManagementApiKey = Environment.GetEnvironmentVariable("MGMT_KEY")
+        };
+
+        _httpClient = new HttpClient();
+        _client = new ContentfulClient(_httpClient, options);
+        _mgmtClient = new ContentfulManagementClient(_httpClient, options);
         _logger = logger;
     }
 
@@ -39,6 +46,39 @@ public class HomeController : Controller
 
     public IActionResult Privacy()
     {
+        return View();
+    }
+
+    public IActionResult NewPage()
+    {
+        return View();
+    }
+
+    public async Task<IActionResult> SubmitPost()
+    {
+        string title = Request.Form["title"];
+        string content = Request.Form["content"];
+        Console.WriteLine($"Title: {title}; Contents: {content}");
+        // var newPost = new Post();
+        // newPost.Title = title;
+        // newPost.Content = content;
+        var newPost = new Entry<dynamic>
+        {
+            Fields = new
+            {
+                Title = new Dictionary<string, string>()
+                {
+                    {"en-US", title}
+                },
+                Content = new Dictionary<string, string>()
+                {
+                    {"en-US", content}
+                }
+            }
+        };
+        var newEntry = await _mgmtClient.CreateEntry(newPost, "post");
+        await _mgmtClient.PublishEntry(newEntry.SystemProperties.Id,
+                                       newEntry.SystemProperties.Version ?? 0);
         return View();
     }
 

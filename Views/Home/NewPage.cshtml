@@ -1,0 +1,19 @@
+@using Contentful.Core.Models;
+
+@{
+    ViewData["Title"] = "Create new post";
+}
+
+<div>
+    <h1>Add new post</h1>
+    <form asp-controller="Home" asp-action="SubmitPost" method="post">
+        <input type="text" name="title" size="80"
+               placeholder="Enter the title of your post here"
+               value=""
+               required/>
+        <br/>
+        <textarea name="content" id="" rows="8" cols="80" value="foo"
+                  placeholder="You can type here."></textarea>
+        <input type="submit" value="Add post">
+    </form>
+</div>

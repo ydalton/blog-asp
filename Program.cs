@@ -1,3 +1,7 @@
+// the delivery key is the most important part
+if(Environment.GetEnvironmentVariable("DELIVERY_KEY") == null)
+    throw new Exception("The Contentful Delivery API key environment variable is not set. Please set it.");
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
