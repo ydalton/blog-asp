@@ -1,7 +1,18 @@
+@using Contentful.Core.Models
 @{
-    var post = (Post) ViewData["entry"];
+    var post = (Post) ViewData["entry"]!;
     ViewData["Title"] = post.Title;
 }
 
 <h1>@post.Title</h1>
+<h6 style="color: gray">
+     @* this should never happen *@
+    @if (post.Sys == null)
+    {
+        post.Sys = new SystemProperties();
+        post.Sys.CreatedAt = DateTime.UnixEpoch;
+    }
+    @($"{post.Sys.CreatedAt:dd MMMM, yyyy hh:mm}")
+</h6>
+<br/>
 <p>@post.Content</p>

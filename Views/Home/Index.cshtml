@@ -5,15 +5,31 @@
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
     @{
-        var entries = (ContentfulCollection<Post>) ViewData["Entries"];
-        foreach(var entry in entries) {
-            <div style="border-style: solid">
-                <p>
-                    <a asp-action="Post" asp-controller="Home" asp-route-id="@entry.Sys.Id">
+        ContentfulCollection<Post>? entries = (ContentfulCollection<Post>?) ViewData["Entries"];
+        if (entries == null)
+            throw new Exception("No entries");
+        foreach(var entry in entries)
+        {
+            // Prevent null pointer dereference
+            if (entry.Sys == null)
+            {
+                entry.Sys = new SystemProperties();
+                // Set id to 0
+                entry.Sys.Id = "0";
+                // Set "CreatedAt" to the Unix timestamp epoch
+                entry.Sys.CreatedAt = DateTime.UnixEpoch;
+            }
+            <div class="border-bottom row justify-content-between col-6 m-auto align-items-center">
+                <p class="col-3 text-start">
+                    <a asp-action="Post"
+                       asp-controller="Home"
+                       asp-route-id="@entry.Sys.Id">
                         @entry.Title
                     </a>
+                </p>
+                <p class="col-3 text-end">
+                    @String.Format("{0:dd MMMM, yyyy}", entry.Sys.CreatedAt)
                 </p>
             </div>
         }
