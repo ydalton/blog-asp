@@ -11,12 +11,12 @@
 <body>
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
+            <div class="container m-auto">
                 <a class="navbar-brand"
                    asp-area=""
                    asp-controller="Home"
                    asp-action="Index">
-                    My Blog
+                    Yussef's Blog
                 </a>
                 <button class="navbar-toggler"
                         type="button"
@@ -28,12 +28,17 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
+                    <ul class="navbar-nav flex-grow-1 m-auto">
                         @{
+                            bool canEdit = (bool) (ViewData["canEdit"] ?? false);
                             // enumerate all the sites
-                            string[] sites = {"Home", "Add new blog entry"};
-                            string[] links = {"Index", "NewPage"};
-                            for(int i = 0; i < sites.Length; i++) {
+                            string[] sites = { "Add new blog entry", "About me"};
+                            string[] links = { "NewPage", "About"};
+                            for (int i = 0; i < sites.Length; i++)
+                            {
+                                // Only show the "Add new blog entry" if we can edit
+                                if(links[i] == "NewPage" && !canEdit)
+                                    continue;
                                 <li class="nav-item">
                                     <a class="nav-link text-dark"
                                        asp-area=""
@@ -57,7 +62,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2023
+            &copy; 2023 Yussef Dalton
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

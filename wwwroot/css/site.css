@@ -20,3 +20,8 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+main {
+  /*max-width: 500px;*/
+  margin: auto;
+}

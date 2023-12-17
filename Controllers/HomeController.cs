@@ -4,60 +4,74 @@ using blog.Models;
 using Contentful.Core;
 using Contentful.Core.Configuration;
 using Contentful.Core.Models;
-using Contentful.Core.Errors;
 
 namespace blog.Controllers;
 
 public class HomeController : Controller
 {
-    // Read the environment variables for the API key instead of hardcoding
-    // them in the code
     private readonly ILogger<HomeController> _logger;
+    // The client which will fetch Contentful entries
     private readonly IContentfulClient _client;
-    private readonly IContentfulManagementClient _mgmtClient;
-    // create a Contentful client
-    private readonly ContentfulOptions options;
-    private readonly HttpClient _httpClient;
+    // The client which will add Contentful entries
+    private readonly IContentfulManagementClient? _mgmtClient;
+    private bool _canEdit;
 
     public HomeController(ILogger<HomeController> logger)
     {
-        options = new ContentfulOptions {
+        // Read the environment variables for the API keys instead of hardcoding
+        // them in the code
+        var options = new ContentfulOptions {
             DeliveryApiKey = Environment.GetEnvironmentVariable("DELIVERY_KEY"),
             PreviewApiKey = Environment.GetEnvironmentVariable("PREVIEW_KEY"),
             SpaceId = Environment.GetEnvironmentVariable("SPACE_ID"),
             ManagementApiKey = Environment.GetEnvironmentVariable("MGMT_KEY")
         };
-
-        _httpClient = new HttpClient();
-        _client = new ContentfulClient(_httpClient, options);
-        _mgmtClient = new ContentfulManagementClient(_httpClient, options);
+        var httpClient = new HttpClient();
+        // create a Contentful client
+        _client = new ContentfulClient(httpClient, options);
+        _canEdit = options.ManagementApiKey != null;
+        if(_canEdit)
+            _mgmtClient = new ContentfulManagementClient(httpClient, options);
         _logger = logger;
     }
 
+    // Index page
     public async Task<IActionResult> Index()
     {
         // get entries from Contentful
-        var entries = await _client.GetEntriesByType<Post>("post");
-        if(entries == null)
-            throw new Exception("No entries");
+        ContentfulCollection<Post> entries;
+        try
+        {
+            entries = await _client.GetEntriesByType<Post>("post");
+        }
+        catch
+        {
+            return Error();
+        }
         // export them to the view
         ViewData["Entries"] = entries;
+        ViewData["canEdit"] = _canEdit;
         return View();
     }
 
+    // Page to add a new entry to Contentful
     public IActionResult NewPage()
     {
         return View();
     }
 
+    // Page that actually adds the the entry to Contentful
     public async Task<IActionResult> SubmitPost()
     {
-        string title = Request.Form["title"];
-        string content = Request.Form["content"];
-        Console.WriteLine($"Title: {title}; Contents: {content}");
-        // var newPost = new Post();
-        // newPost.Title = title;
-        // newPost.Content = content;
+        if (!_canEdit)
+            return Error();
+        string? title = Request.Form["title"];
+        string? content = Request.Form["content"];
+        // We don't want to add a null entry
+        if (title == null || content == null)
+            return View();
+        Console.WriteLine($"Adding new entry with contents title \"{title}\" " +
+                          $"and contents \"{content}\"");
         var newPost = new Entry<dynamic>
         {
             Fields = new
@@ -72,22 +86,24 @@ public class HomeController : Controller
                 }
             }
         };
+        // Attempt to create and publish a new entry to Contentful
         try {
+            Debug.Assert(_mgmtClient != null);
             var newEntry = await _mgmtClient.CreateEntry(newPost, "post");
             await _mgmtClient.PublishEntry(newEntry.SystemProperties.Id,
                                         newEntry.SystemProperties.Version ?? 0);
-        } catch (ContentfulException err) {
+        } catch {
             Console.WriteLine("Could not create entry.");
         }
         return View();
     }
     public async Task<IActionResult> Post()
     {
-        string postId = Request.Query["id"];
+        string? postId = Request.Query["id"];
         Post entry;
         try{
             entry = await _client.GetEntry<Post>(postId);
-        } catch (ContentfulException err) {
+        } catch {
             // Create a post with an entry stating that the requested url could
             // not be found.
             entry = new Post();
