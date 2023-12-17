@@ -31,8 +31,8 @@
                     <ul class="navbar-nav flex-grow-1">
                         @{
                             // enumerate all the sites
-                            string[] sites = {"Home", "Privacy", "Add new blog entry"};
-                            string[] links = {"Index", "Privacy", "NewPage"};
+                            string[] sites = {"Home", "Add new blog entry"};
+                            string[] links = {"Index", "NewPage"};
                             for(int i = 0; i < sites.Length; i++) {
                                 <li class="nav-item">
                                     <a class="nav-link text-dark"
@@ -57,11 +57,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2023 - blog - <a asp-area=""
-                                    asp-controller="Home"
-                                    asp-action="Privacy">
-                Privacy
-            </a>
+            &copy; 2023
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
