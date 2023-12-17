@@ -22,7 +22,8 @@ public class HomeController : Controller
         // them in the code
         var options = new ContentfulOptions {
             DeliveryApiKey = Environment.GetEnvironmentVariable("DELIVERY_KEY"),
-            PreviewApiKey = Environment.GetEnvironmentVariable("PREVIEW_KEY"),
+            // The preview key is not required?
+            //PreviewApiKey = Environment.GetEnvironmentVariable("PREVIEW_KEY"),
             SpaceId = Environment.GetEnvironmentVariable("SPACE_ID"),
             ManagementApiKey = Environment.GetEnvironmentVariable("MGMT_KEY")
         };
